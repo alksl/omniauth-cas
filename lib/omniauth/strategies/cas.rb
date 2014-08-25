@@ -35,6 +35,9 @@ module OmniAuth
       option :image_key,            'image'
       option :phone_key,            'phone'
 
+      # Callback for fetching additional user data
+      option :fetch_user_data_with, nil
+
       # As required by https://github.com/intridea/omniauth/wiki/Auth-Hash-Schema
       AuthHashSchemaKeys = %w{name email first_name last_name location image phone}
       info do
@@ -72,6 +75,7 @@ module OmniAuth
           return fail!(:no_ticket, MissingCASTicket.new('No CAS Ticket')) unless @ticket
 
           self.raw_info = ServiceTicketValidator.new(self, @options, callback_url, @ticket).user_info
+          self.raw_info.merge!(@options[:fetch_user_data_with].call(uid)) if @options[:fetch_user_data_with]
 
           return fail!(:invalid_ticket, InvalidCASTicket.new('Invalid CAS Ticket')) if raw_info.empty?
 
